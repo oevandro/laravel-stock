@@ -2,16 +2,32 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\CategoryResource;
 use App\Models\Category;
 
 use Validator;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class CategoryController extends Controller
 {
 
     public function index() {
-        return Category::all();
+
+        $cacheKey = Cache::get('categories');
+
+        if (Cache::has($cacheKey)) {
+            return Cache::get($cacheKey);
+        }
+
+        $categoriesObject = Category::all();
+
+        $categories = CategoryResource::collection($categoriesObject);
+
+        Cache::put($cacheKey, $categories, now()->addMinutes(5));
+
+        return $categories;
+
     }
 
 
